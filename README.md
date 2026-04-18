@@ -8,7 +8,7 @@
 ![Built by Hyperion AI](https://img.shields.io/badge/built_by-Hyperion_AI-0f172a)
 ![Stack](https://img.shields.io/badge/stack-Claude_·_MCP_·_Next.js-64748b)
 
-[View Design Doc (PDF)](DESIGN_DOC.pdf) · [Architecture](docs/architecture.md) · [Implementation Plan](IMPLEMENTATION_PLAN.md)
+[View Design Doc (PDF)](DESIGN_DOC.pdf) · [Architecture](docs/architecture.md)
 
 ---
 
@@ -36,7 +36,6 @@ Claude + CRM chatbots usually fail in two predictable ways: they lose memory acr
 
 **[Architecture](docs/architecture.md)** — Layered view with component responsibilities and design decisions.
 
-**[Implementation Plan](IMPLEMENTATION_PLAN.md)** — 3-phase build plan with milestones and risks.
 
 **[Flow Diagram](docs/flow.svg)** — Sequence diagram of the confirmation-gated write path.
 
