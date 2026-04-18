@@ -1,0 +1,8 @@
+{
+  "title": "User View",
+  "description": "This is your personal information page.",
+  "assistantTitle": "Your Assistant",
+  "welcomeMessage": "Tell me about yourself",
+  "inputPlaceholder": "Tell me about your life, work experience, or interests",
+  "initialMessage": "Hi! 👋 Share a bit about yourself - I'll understand your personality traits and create your personal profile"
+}

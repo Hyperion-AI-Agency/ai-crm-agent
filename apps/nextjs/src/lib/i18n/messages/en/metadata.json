@@ -1,0 +1,22 @@
+{
+  "name": "App",
+  "description": "AI-powered psychological profiling system",
+  "homeTitle": "App - Discover Your Professional Profile",
+  "homeDescription": "AI-powered personality profiling for career growth and team building.",
+  "blogTitle": "Blog",
+  "blogDescription": "Articles, insights, and updates from the App team.",
+  "privacyPolicyTitle": "Privacy Policy",
+  "privacyPolicyDescription": "Learn how App collects, uses, and protects your personal data.",
+  "termsOfServiceTitle": "Terms of Service",
+  "termsOfServiceDescription": "Read the terms and conditions for using App.",
+  "cookiePreferencesTitle": "Cookie Preferences",
+  "cookiePreferencesDescription": "Manage your cookie settings for App.",
+  "signInTitle": "Sign In",
+  "signInDescription": "Sign in to your App account.",
+  "signUpTitle": "Sign Up",
+  "signUpDescription": "Create your App account and discover your professional profile.",
+  "resetPasswordTitle": "Reset Password",
+  "resetPasswordDescription": "Reset your App account password.",
+  "verifyEmailTitle": "Verify Email",
+  "verifyEmailDescription": "Verify your email address to complete your App registration."
+}

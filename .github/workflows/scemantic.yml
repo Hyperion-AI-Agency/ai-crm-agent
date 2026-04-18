@@ -1,0 +1,71 @@
+name: "[RELEASE] Tag Release Pipeline"
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+env:
+  PNPM_VERSION: "10.11.0"
+  NODE_VERSION: "22"
+
+jobs:
+
+  ci:
+    name: CI
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
+  build:
+    name: Build
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+  deploy-to-coolify:
+    name: Deploy to Coolify
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Coolify
+        run: |
+          curl --request GET '${{ secrets.COOLIFY_WEBHOOK }}' --header 'Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}'
+
+  sentry-release:
+    name: Sentry Release
+    needs: deploy-to-coolify
+    runs-on: ubuntu-latest
+    if: ${{ vars.SENTRY_ORG != '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create Sentry release
+        uses: getsentry/action-release@v3
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+        with:
+          projects: ${{ vars.SENTRY_PROJECT_FRONTEND }} ${{ vars.SENTRY_PROJECT_BACKEND }}
+          version: ${{ github.ref_name }}
+          environment: production
+          set_commits: auto

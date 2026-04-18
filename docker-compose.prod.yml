@@ -1,0 +1,227 @@
+# Production docker-compose
+#
+# All configuration is passed via environment variables (e.g. .env file or
+# orchestrator like Coolify). No secrets or URLs are hardcoded.
+#
+# Required vars are ${VAR} (will error if missing).
+# Optional vars are ${VAR:-default} (have sensible defaults).
+
+# ── Shared environment variables ──────────────────────────────────────────────
+
+x-app-env: &app-env
+  NODE_ENV: production
+  # Database
+  APP_DATABASE_URL: ${APP_DATABASE_URL}
+  # Auth
+  APP_BETTER_AUTH_SECRET: ${APP_BETTER_AUTH_SECRET}
+  APP_DISABLE_SIGNUP: ${APP_DISABLE_SIGNUP:-}
+  APP_REQUIRE_EMAIL_VERIFICATION: ${APP_REQUIRE_EMAIL_VERIFICATION:-}
+  # CMS
+  APP_PAYLOAD_SECRET: ${APP_PAYLOAD_SECRET}
+  # URLs
+  NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+  NEXT_PUBLIC_PAYLOAD_URL: ${NEXT_PUBLIC_PAYLOAD_URL}
+  APP_BACKEND_API_URL: ${APP_BACKEND_API_URL:-http://api:8000}
+  # Google OAuth
+  APP_GOOGLE_CLIENT_ID: ${APP_GOOGLE_CLIENT_ID}
+  APP_GOOGLE_CLIENT_SECRET: ${APP_GOOGLE_CLIENT_SECRET}
+  # FastAPI OAuth
+  APP_FASTAPI_OAUTH_CLIENT_ID: ${APP_FASTAPI_OAUTH_CLIENT_ID}
+  APP_FASTAPI_OAUTH_CLIENT_SECRET: ${APP_FASTAPI_OAUTH_CLIENT_SECRET}
+  # Payments
+  APP_POLAR_ACCESS_TOKEN: ${APP_POLAR_ACCESS_TOKEN}
+  APP_POLAR_WEBHOOK_SECRET: ${APP_POLAR_WEBHOOK_SECRET}
+  APP_POLAR_SUCCESS_URL: ${APP_POLAR_SUCCESS_URL:-/success?checkout_id={CHECKOUT_ID}}
+  APP_POLAR_ENVIRONMENT: ${APP_POLAR_ENVIRONMENT:-production}
+  # Email
+  APP_RESEND_API_KEY: ${APP_RESEND_API_KEY}
+  APP_RESEND_FROM: ${APP_RESEND_FROM}
+  # CopilotKit
+  NEXT_PUBLIC_COPILOTKIT_PUBLIC_LICENSE_KEY: ${NEXT_PUBLIC_COPILOTKIT_PUBLIC_LICENSE_KEY}
+  # Feature flags
+  NEXT_PUBLIC_SIGNUP_ENABLED: ${NEXT_PUBLIC_SIGNUP_ENABLED:-false}
+  NEXT_PUBLIC_APP_UNDER_DEVELOPMENT: ${NEXT_PUBLIC_APP_UNDER_DEVELOPMENT:-false}
+  NEXT_PUBLIC_REQUIRE_EMAIL_VERIFICATION: ${NEXT_PUBLIC_REQUIRE_EMAIL_VERIFICATION:-}
+  # Sentry (optional)
+  NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
+  # PostHog (optional)
+  NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY:-}
+  NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST:-}
+  # i18n
+  NEXT_PUBLIC_ALL_LOCALES: ${NEXT_PUBLIC_ALL_LOCALES:-lt,en}
+  NEXT_PUBLIC_DEFAULT_LOCALE: ${NEXT_PUBLIC_DEFAULT_LOCALE:-lt}
+  # Admin seed
+  APP_ADMIN_EMAIL: ${APP_ADMIN_EMAIL:-admin@example.com}
+  APP_ADMIN_PASSWORD: ${APP_ADMIN_PASSWORD:-admin}
+
+x-api-env: &api-env
+  # Core
+  API_ENVIRONMENT: ${API_ENVIRONMENT:-production}
+  API_SECRET_KEY: ${API_SECRET_KEY}
+  API_SERVER_HOST: "0.0.0.0"
+  API_SERVER_PORT: "8000"
+  API_SWAGGER_HIDE: ${API_SWAGGER_HIDE:-true}
+  # Database
+  API_DATABASE_URL: ${API_DATABASE_URL}
+  AGENTS_DATABASE_URL: ${AGENTS_DATABASE_URL}
+  # Auth (validates JWTs from Next.js)
+  # JWKS fetch goes over internal Docker network; issuer/audience must match the public URL
+  API_OAUTH_PROVIDER_BASE_URL: ${API_OAUTH_PROVIDER_BASE_URL:-http://app:3000}
+  API_OAUTH_ISSUER_URL: ${NEXT_PUBLIC_APP_URL}
+  API_OAUTH_AUDIENCE: ${NEXT_PUBLIC_APP_URL}
+  API_OAUTH_CLIENT_ID: ${API_OAUTH_CLIENT_ID:-}
+  API_OAUTH_CLIENT_SECRET: ${API_OAUTH_CLIENT_SECRET:-}
+  # LLM
+  API_OPENAI_API_KEY: ${API_OPENAI_API_KEY}
+  API_TAVILY_API_KEY: ${API_TAVILY_API_KEY:-}
+  # Celery
+  API_CELERY_BROKER_URL: ${API_CELERY_BROKER_URL}
+  API_CELERY_RESULT_BACKEND: ${API_CELERY_RESULT_BACKEND}
+  # Files
+  API_UPLOAD_DIR: /data/uploads
+  # Sentry (optional)
+  API_SENTRY_DSN: ${API_SENTRY_DSN:-}
+  API_SENTRY_TRACES_SAMPLE_RATE: ${API_SENTRY_TRACES_SAMPLE_RATE:-0.1}
+  API_SENTRY_PROFILES_SAMPLE_RATE: ${API_SENTRY_PROFILES_SAMPLE_RATE:-0.1}
+  # LangSmith (optional)
+  API_LANGSMITH_TRACING: ${API_LANGSMITH_TRACING:-false}
+  API_LANGSMITH_API_KEY: ${API_LANGSMITH_API_KEY:-}
+  API_LANGSMITH_PROJECT: ${API_LANGSMITH_PROJECT:-}
+  # Langfuse (observability)
+  API_LANGFUSE_SECRET_KEY: ${API_LANGFUSE_SECRET_KEY:-}
+  API_LANGFUSE_PUBLIC_KEY: ${API_LANGFUSE_PUBLIC_KEY:-}
+  API_LANGFUSE_BASE_URL: ${API_LANGFUSE_BASE_URL:-https://cloud.langfuse.com}
+
+# ── Services ──────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Reverse proxy ────────────────────────────────────────────────────────
+  traefik:
+    image: traefik:3.6
+    command:
+      - --api.dashboard=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
+      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_letsencrypt:/letsencrypt
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN}`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.dashboard.middlewares=dashboard-auth"
+      - "traefik.http.middlewares.dashboard-auth.basicauth.users=${TRAEFIK_DASHBOARD_AUTH}"
+    restart: unless-stopped
+
+  # ── API DB migration runner (runs once, then exits) ─────────────────────────
+  seed-api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    environment:
+      <<: *api-env
+    command: ["migrate"]
+    restart: "no"
+
+  # ── FastAPI backend ────────────────────────────────────────────────────────
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    environment:
+      <<: *api-env
+    volumes:
+      - api_uploads:/data/uploads
+    depends_on:
+      seed-api:
+        condition: service_completed_successfully
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`api.${DOMAIN}`)"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.api.loadbalancer.server.port=8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ── Celery background worker ───────────────────────────────────────────────
+  celery-worker:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    environment:
+      <<: *api-env
+    command: ["celery-worker"]
+    depends_on:
+      seed-api:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  # ── App DB seed runner (runs once, then exits) ──────────────────────────────
+  seed-app:
+    build:
+      context: .
+      dockerfile: apps/nextjs/Dockerfile
+      target: seeder
+      args: &app-build-args
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+        NEXT_PUBLIC_PAYLOAD_URL: ${NEXT_PUBLIC_PAYLOAD_URL}
+        NEXT_PUBLIC_BACKEND_API_URL: ${APP_BACKEND_API_URL:-http://api:8000}
+        NEXT_PUBLIC_COPILOTKIT_PUBLIC_LICENSE_KEY: ${NEXT_PUBLIC_COPILOTKIT_PUBLIC_LICENSE_KEY}
+        NEXT_PUBLIC_SIGNUP_ENABLED: ${NEXT_PUBLIC_SIGNUP_ENABLED:-false}
+        NEXT_PUBLIC_APP_UNDER_DEVELOPMENT: ${NEXT_PUBLIC_APP_UNDER_DEVELOPMENT:-false}
+        NEXT_PUBLIC_REQUIRE_EMAIL_VERIFICATION: ${NEXT_PUBLIC_REQUIRE_EMAIL_VERIFICATION:-}
+        NEXT_PUBLIC_ALL_LOCALES: ${NEXT_PUBLIC_ALL_LOCALES:-lt,en}
+        NEXT_PUBLIC_DEFAULT_LOCALE: ${NEXT_PUBLIC_DEFAULT_LOCALE:-lt}
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
+        NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY:-}
+        NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST:-}
+    environment:
+      <<: *app-env
+    restart: "no"
+
+  # ── Next.js frontend ───────────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: apps/nextjs/Dockerfile
+      args: *app-build-args
+    environment:
+      <<: *app-env
+    depends_on:
+      seed-app:
+        condition: service_completed_successfully
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.app.entrypoints=websecure"
+      - "traefik.http.routers.app.tls.certresolver=letsencrypt"
+      - "traefik.http.services.app.loadbalancer.server.port=3000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  api_uploads:
+  traefik_letsencrypt:

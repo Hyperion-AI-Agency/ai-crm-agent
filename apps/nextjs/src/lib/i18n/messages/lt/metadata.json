@@ -1,0 +1,22 @@
+{
+  "name": "App",
+  "description": "AI pagrįsta psichologinio profiliavimo sistema",
+  "homeTitle": "App - Atraskite savo profesinį profilį",
+  "homeDescription": "AI pagrįstas asmenybės profiliavimas karjeros augimui ir komandų formavimui.",
+  "blogTitle": "Straipsniai",
+  "blogDescription": "Straipsniai, įžvalgos ir naujienos iš App komandos.",
+  "privacyPolicyTitle": "Privatumo politika",
+  "privacyPolicyDescription": "Sužinokite, kaip App renka, naudoja ir saugo jūsų asmens duomenis.",
+  "termsOfServiceTitle": "Naudojimo sąlygos",
+  "termsOfServiceDescription": "Susipažinkite su App naudojimo sąlygomis.",
+  "cookiePreferencesTitle": "Slapukų nustatymai",
+  "cookiePreferencesDescription": "Tvarkykite savo slapukų nustatymus App platformoje.",
+  "signInTitle": "Prisijungti",
+  "signInDescription": "Prisijunkite prie savo App paskyros.",
+  "signUpTitle": "Registracija",
+  "signUpDescription": "Susikurkite App paskyrą ir atraskite savo profesinį profilį.",
+  "resetPasswordTitle": "Slaptažodžio atkūrimas",
+  "resetPasswordDescription": "Atkurkite savo App paskyros slaptažodį.",
+  "verifyEmailTitle": "El. pašto patvirtinimas",
+  "verifyEmailDescription": "Patvirtinkite savo el. pašto adresą, kad užbaigtumėte App registraciją."
+}
