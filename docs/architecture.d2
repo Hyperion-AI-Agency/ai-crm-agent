@@ -49,27 +49,19 @@ data: "Data Layer" {
   }
 }
 
-external: "External" {
-  style.bold: true
-
-  claude: Anthropic Claude {
-    icon: https://cdn.simpleicons.org/anthropic
-  }
-  crm: CRM API {
-    icon: https://cdn.simpleicons.org/hubspot
-  }
+crm: CRM API {
+  icon: https://cdn.simpleicons.org/hubspot
 }
 
 user -> ui
 ui -> agent.orchestrator
 agent.orchestrator -> agent.memory
 agent.memory -> data.memory_db
-agent.orchestrator -> external.claude: "Prompt + tools"
 agent.orchestrator -> mcp.reads
 agent.orchestrator -> mcp.writes
 agent.orchestrator -> agent.guard
 agent.guard -> ui: "Confirm draft"
-mcp.reads -> external.crm
-mcp.writes -> external.crm: "On user confirm"
+mcp.reads -> crm
+mcp.writes -> crm: "On user confirm"
 mcp.reads -> data.audit
 mcp.writes -> data.audit
