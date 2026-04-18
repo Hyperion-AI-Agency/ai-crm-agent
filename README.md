@@ -1,58 +1,87 @@
-# AI SaaS Template
+# Production Claude Agents with MCP + CRM - Reference Architecture
 
-A full-stack AI SaaS monorepo template with Next.js, FastAPI, LangGraph agents, Payload CMS, authentication, and payments. Built on the [monorepo-base-template](https://github.com/Hyperion-AI-Agency/monorepo-base-template).
+Reference architecture for teams building Claude-powered chatbots that read and write CRM data safely. Demonstrates the pattern that works in production: MCP tools for CRM integration, three layers of memory, confirmation-gated writes, immutable audit log.
 
-## Key Features
+Built by [Vitalijus Alsauskas / HyperionAI](https://www.linkedin.com/in/vitalijus-hyperion/) as a public reference for firms extending Claude into CRM-aware chatbot territory.
 
-- **CopilotKit AG-UI** chat interface
-- **LangGraph** agent with tool system
-- **Better Auth** (email/password + Google OAuth)
-- **Polar SDK** payments + subscription gating
-- **Payload CMS** (pages, posts, blocks)
-- **Celery** background workers
-- **Langfuse** LLM observability
-- **i18n** (next-intl)
-- **Two PostgreSQL databases** (app + API)
+---
 
-## Getting Started
+## Why this exists
 
-1. **Use this template** — Click "Use this template" on GitHub
-2. **Clone your new repo** — `git clone <your-repo-url>`
-3. **Install dependencies** — `pnpm install && cd apps/api && poetry install`
-4. **Set up environment** — Copy `.env.example` to `.env` in `apps/nextjs/` and `apps/api/`
-5. **Start infrastructure** — `docker compose -f docker-compose.local.yml up -d`
-6. **Run migrations** — `pnpm db:migrate`
-7. **Start developing** — `pnpm dev`
+Claude + CRM chatbots usually fail in two predictable ways:
+- **Memory gap:** the bot remembers this conversation but nothing from last week, so users re-explain context every session
+- **Silent writes:** the bot mutates CRM records without review, users find surprise entries
 
-## Architecture
+This reference shows the pattern that works:
 
+1. **MCP tools** - expose CRM capabilities via Model Context Protocol. Swap CRMs without touching the agent.
+2. **Three memory layers** - session (current conversation), user (preferences, recent interactions), account (company-wide context). Composed at prompt time so no one layer has to hold everything.
+3. **Confirmation-gated writes** - every mutating tool goes through a guardrail. Agent drafts, user approves, commit fires. Nothing silently changes.
+4. **Immutable audit log** - every tool call + commit logged to append-only S3 with before/after. Regulatory-grade.
+5. **Isolation per user** - one user cannot see another's memory or audit trail.
+
+---
+
+## Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [docs/architecture.md](docs/architecture.md) | Layered architecture + component responsibilities |
+| [docs/architecture.svg](docs/architecture.svg) | Architecture diagram (rendered) |
+| [docs/flow.svg](docs/flow.svg) | Conversation flow: read path + confirmation-gated write path |
+| [DESIGN_DOC.pdf](DESIGN_DOC.pdf) | Branded design doc with reasoning, tool choices, risks |
+| [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) | Phase-by-phase build plan with milestones and risks |
+| [CLAUDE.md](CLAUDE.md) | Operational rules for Claude Code working in this codebase |
+
+---
+
+## Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Chat UI | Next.js 15 (App Router, streaming) |
+| Agent Runtime | FastAPI + Anthropic SDK |
+| Tool Layer | Model Context Protocol (MCP) server in Python |
+| Memory | Postgres (session + user + account) + pgvector (long-term semantic) |
+| Audit Log | Immutable S3 bucket (Object Lock) + Postgres mirror |
+| CRM | HubSpot / Salesforce / Pipedrive (adapter per backend) |
+| LLM | Anthropic Claude 3.5 Sonnet (zero-retention) |
+| Observability | Sentry |
+
+---
+
+## Quick Start (local dev)
+
+```bash
+pnpm install
+docker compose -f docker-compose.local.yml up -d
+cd apps/api && poetry install && poetry run alembic upgrade head && cd ../..
+pnpm dev
 ```
-apps/
-├── nextjs/       # Next.js 15 + Payload CMS + Better Auth + Polar
-├── api/          # FastAPI + LangGraph + Celery
-├── storybook/    # Component documentation
-├── email/        # Email template dev server
-├── mkdocs/       # Developer documentation
-└── keycloak-theme/
 
-packages/
-├── ui/           # shadcn/ui components
-├── analytics/    # PostHog
-├── sentry/       # Error tracking
-├── api-client/   # Generated API client
-└── email/        # Email templates
+---
 
-tooling/
-├── typescript-config/
-├── prettier-config/
-└── eslint-config/
-```
+## Who this is for
 
-## Syncing with Base Template
+**Firms extending an existing Claude setup** into CRM-aware chatbot capabilities (not greenfield - if you're starting from scratch, the foundations are here too).
 
-To pull updates from the base template:
+**Developers hired to build a Claude+CRM chatbot** - fork this repo, the MCP + memory + guardrail pattern is the hardest part and it's already figured out.
 
-1. Add the base as a remote: `git remote add base https://github.com/Hyperion-AI-Agency/monorepo-base-template.git`
-2. Fetch: `git fetch base main`
-3. Merge: `git merge base/main --allow-unrelated-histories`
-4. Resolve conflicts and commit
+**Technical reviewers** - skim the architecture and flow diagrams to see what production-ready Claude + CRM looks like.
+
+---
+
+## About
+
+Built by Vitalijus Alsauskas. Ex-IBM (4 years, Fortune 500 clients including AskProcurement, a chatbot integrating Dun & Bradstreet data for procurement teams). Claude Code and MCP are my daily setup - currently running Claude in production on Adboard (Next.js + Supabase + Claude API with OAuth into Meta, Google, Shopify) and Fit7D (FastAPI + Claude dialogue platform).
+
+If you're building this and want a second set of eyes, I offer a free 30-minute scoping call - reach out via LinkedIn or [vitalijus.io](https://vitalijus.io).
+
+- GitHub: https://github.com/Vitals9367
+- LinkedIn: https://www.linkedin.com/in/vitalijus-hyperion/
+
+---
+
+## License
+
+MIT. Fork, adapt, ship.
