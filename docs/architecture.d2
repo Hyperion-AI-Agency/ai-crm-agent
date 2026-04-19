@@ -32,26 +32,26 @@ classes: {
   }
 }
 
-# 3x3 hub-and-spoke layout. app_zone at dead center [1,1].
-# Row 0: _    | user  | _
-# Row 1: data | app   | integrations
-# Row 2: _    | agent | _
+# 3x3 layout:
+# Row 0: _     | data | _
+# Row 1: user  | app  | agent
+# Row 2: _     | integrations | _
 
 spacer_tl: "" { class: hidden }
-
-user_slot: "" { class: hidden
-  user: Internal User {
-    class: card
-    icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/user-round.svg
-  }
-}
-
-spacer_tr: "" { class: hidden }
 
 data_zone: "Data" {
   db: Postgres {
     class: card
     icon: https://cdn.simpleicons.org/postgresql
+  }
+}
+
+spacer_tr: "" { class: hidden }
+
+user_slot: "" { class: hidden
+  user: Internal User {
+    class: card
+    icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/user-round.svg
   }
 }
 
@@ -69,26 +69,6 @@ app_zone: "App" {
   }
 }
 
-integrations_zone: "3rd Party Integrations" {
-  grid-columns: 3
-  grid-gap: 80
-
-  claude: Claude API {
-    class: card
-    icon: https://cdn.simpleicons.org/anthropic
-  }
-  hubspot: HubSpot {
-    class: card
-    icon: https://cdn.simpleicons.org/hubspot
-  }
-  salesforce: Salesforce {
-    class: card
-    icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/cloud.svg
-  }
-}
-
-spacer_bl: "" { class: hidden }
-
 agent_zone: "Agent Runtime" {
   grid-columns: 1
   grid-gap: 80
@@ -104,6 +84,26 @@ agent_zone: "Agent Runtime" {
   writes: Write Guardrail {
     class: card
     icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/shield-check.svg
+  }
+}
+
+spacer_bl: "" { class: hidden }
+
+integrations_zone: "3rd Party Integrations" {
+  grid-columns: 3
+  grid-gap: 80
+
+  claude: Claude API {
+    class: card
+    icon: https://cdn.simpleicons.org/anthropic
+  }
+  hubspot: HubSpot {
+    class: card
+    icon: https://cdn.simpleicons.org/hubspot
+  }
+  salesforce: Salesforce {
+    class: card
+    icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/cloud.svg
   }
 }
 
