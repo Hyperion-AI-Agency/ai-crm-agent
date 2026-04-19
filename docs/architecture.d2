@@ -30,6 +30,13 @@ classes: {
     style.fill: transparent
     style.stroke: transparent
   }
+  spacer: {
+    shape: rectangle
+    width: 160
+    height: 160
+    style.fill: transparent
+    style.stroke: transparent
+  }
 }
 
 # 3x3 layout:
@@ -37,16 +44,19 @@ classes: {
 # Row 1: user  | app  | agent
 # Row 2: _     | integrations | _
 
-spacer_tl: "" { class: hidden }
+spacer_tl: "" { class: spacer }
 
 data_zone: "Data" {
+  grid-columns: 1
+  grid-gap: 80
+
   db: Postgres {
     class: card
     icon: https://cdn.simpleicons.org/postgresql
   }
 }
 
-spacer_tr: "" { class: hidden }
+spacer_tr: "" { class: spacer }
 
 user_slot: "" { class: hidden
   user: Internal User {
@@ -87,7 +97,7 @@ agent_zone: "Agent Runtime" {
   }
 }
 
-spacer_bl: "" { class: hidden }
+spacer_bl: "" { class: spacer }
 
 integrations_zone: "3rd Party Integrations" {
   grid-columns: 3
@@ -107,7 +117,7 @@ integrations_zone: "3rd Party Integrations" {
   }
 }
 
-spacer_br: "" { class: hidden }
+spacer_br: "" { class: spacer }
 
 user_slot.user -> app_zone.ui: "1. Message"
 app_zone.ui -> app_zone.orchestrator: "2. Request"
