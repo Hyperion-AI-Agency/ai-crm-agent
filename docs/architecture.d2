@@ -8,8 +8,6 @@ vars: {
 }
 
 direction: right
-grid-columns: 3
-grid-gap: 240
 
 classes: {
   card: {
@@ -28,22 +26,15 @@ classes: {
   }
 }
 
-# Transparent wrapper so the cell absorbs grid stretch but the card stays card-sized.
-user_slot: "" {
-  style.fill: transparent
-  style.stroke: transparent
-  style.stroke-width: 0
-  style.shadow: false
-
-  user: Internal User {
-    class: card
-    icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/user-round.svg
-  }
+# Entry point on the left - bare card, no zone wrapper.
+user: Internal User {
+  class: card
+  icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/user-round.svg
 }
 
 app_zone: "App" {
   grid-columns: 2
-  grid-gap: 160
+  grid-gap: 40
 
   ui: Next.js Chat UI {
     class: card
@@ -57,7 +48,7 @@ app_zone: "App" {
 
 agent_zone: "Agent Runtime" {
   grid-columns: 3
-  grid-gap: 160
+  grid-gap: 40
 
   memory: Memory Manager {
     class: card
@@ -82,7 +73,7 @@ data_zone: "Data" {
 
 integrations_zone: "3rd Party Integrations" {
   grid-columns: 2
-  grid-gap: 160
+  grid-gap: 40
 
   claude: Claude API {
     class: card
@@ -95,7 +86,7 @@ integrations_zone: "3rd Party Integrations" {
 }
 
 # L-to-R flow: user -> app -> agent -> data/integrations
-user_slot.user -> app_zone.ui: "1. Message"
+user -> app_zone.ui: "1. Message"
 app_zone.ui -> app_zone.orchestrator: "2. Request"
 app_zone.orchestrator -> agent_zone: "3. Load + tool calls"
 agent_zone.memory -> data_zone.db: "4. Session state"
