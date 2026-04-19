@@ -103,11 +103,12 @@ processing_zone: "Agent Runtime" {
   }
 }
 
-# Zone-to-zone arrows only. Max 6. Linear flow.
+# App is the hub. All arrows radiate through it.
 entry_slot.user -> core.app_zone: "1. Message"
 core.app_zone -> core.data_zone: "2. Load session"
 core.app_zone -> processing_zone: "3. Tool calls"
-processing_zone -> core.integrations_zone: "4. Read/Write CRM" {
+processing_zone -> core.app_zone: "4. Tool results"
+core.app_zone -> core.integrations_zone: "5. Commit" {
   style.stroke: "#059669"
   style.bold: true
 }
