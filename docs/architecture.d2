@@ -8,6 +8,8 @@ vars: {
 }
 
 direction: right
+grid-columns: 5
+grid-gap: 120
 
 classes: {
   card: {
@@ -26,15 +28,19 @@ classes: {
   }
 }
 
-# Entry point on the left - bare card, no zone wrapper.
-user: Internal User {
-  class: card
-  icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/user-round.svg
+user_slot: "" {
+  style.fill: transparent
+  style.stroke: transparent
+
+  user: Internal User {
+    class: card
+    icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/user-round.svg
+  }
 }
 
 app_zone: "App" {
   grid-columns: 2
-  grid-gap: 40
+  grid-gap: 30
 
   ui: Next.js Chat UI {
     class: card
@@ -48,7 +54,7 @@ app_zone: "App" {
 
 agent_zone: "Agent Runtime" {
   grid-columns: 3
-  grid-gap: 40
+  grid-gap: 30
 
   memory: Memory Manager {
     class: card
@@ -73,7 +79,7 @@ data_zone: "Data" {
 
 integrations_zone: "3rd Party Integrations" {
   grid-columns: 2
-  grid-gap: 40
+  grid-gap: 30
 
   claude: Claude API {
     class: card
@@ -85,16 +91,7 @@ integrations_zone: "3rd Party Integrations" {
   }
 }
 
-# L-to-R flow: user -> app -> agent -> data/integrations
-user -> app_zone.ui: "1. Message"
-app_zone.ui -> app_zone.orchestrator: "2. Request"
-app_zone.orchestrator -> agent_zone: "3. Load + tool calls"
-agent_zone.memory -> data_zone.db: "4. Session state"
-agent_zone.reads -> integrations_zone.crm: "5. Read CRM"
-agent_zone.writes -> integrations_zone.crm: "6. Commit write" {
-  style.stroke: "#059669"
-  style.bold: true
-}
-app_zone.orchestrator -> integrations_zone.claude: "ext. LLM call" {
-  style.stroke-dash: 3
-}
+user_slot.user -> app_zone: "1. Message"
+app_zone -> agent_zone: "2. Tool call"
+agent_zone -> data_zone: "3. Memory"
+agent_zone -> integrations_zone: "4. Read/Write"
