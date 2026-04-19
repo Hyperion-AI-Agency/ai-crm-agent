@@ -28,6 +28,8 @@ classes: {
   }
 }
 
+# Row 0: user | app | (empty spacer)
+# Row 1: data | agent | integrations
 user_slot: "" {
   style.fill: transparent
   style.stroke: transparent
@@ -50,6 +52,11 @@ app_zone: "App" {
     class: card
     icon: https://cdn.simpleicons.org/fastapi
   }
+}
+
+spacer_1: "" {
+  style.fill: transparent
+  style.stroke: transparent
 }
 
 data_zone: "Data" {
@@ -91,7 +98,6 @@ integrations_zone: "3rd Party Integrations" {
   }
 }
 
-# FastAPI orchestrator reads/writes data directly (session state) + delegates tool calls to agent runtime.
 user_slot.user -> app_zone.ui: "1. Message"
 app_zone.ui -> app_zone.orchestrator: "2. Request"
 app_zone.orchestrator -> data_zone.db: "3. Load session"
