@@ -1,4 +1,4 @@
-# AI CRM Agent - Architecture
+# AI CRM Agent - Architecture (v5: linear L-to-R flow, stacked core)
 # Render: d2 --theme 0 --sketch --pad 80 --scale 1.0 --layout elk docs/architecture.d2 docs/architecture.svg
 
 vars: {
@@ -8,8 +8,6 @@ vars: {
 }
 
 direction: right
-grid-columns: 3
-grid-gap: 240
 
 classes: {
   card: {
@@ -30,56 +28,64 @@ classes: {
     style.fill: transparent
     style.stroke: transparent
   }
-  spacer: {
-    shape: rectangle
-    width: 160
-    height: 160
-    style.fill: transparent
-    style.stroke: transparent
-  }
 }
 
-# 3x3 layout:
-# Row 0: _     | data | _
-# Row 1: user  | app  | agent
-# Row 2: _     | integrations | _
+# Layout: [entry] -> [core: Data / App / Integrations stacked] -> [processing]
 
-spacer_tl: "" { class: spacer }
-
-data_zone: "Data" {
-  grid-columns: 1
-  grid-gap: 80
-
-  db: Postgres {
-    class: card
-    icon: https://cdn.simpleicons.org/postgresql
-  }
-}
-
-spacer_tr: "" { class: spacer }
-
-user_slot: "" { class: hidden
+entry_slot: "" { class: hidden
   user: Internal User {
     class: card
     icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/user-round.svg
   }
 }
 
-app_zone: "App" {
-  grid-columns: 2
-  grid-gap: 80
+core: "" { class: hidden
+  direction: down
 
-  ui: Next.js Frontend {
-    class: card
-    icon: https://cdn.simpleicons.org/nextdotjs
+  data_zone: "Data" {
+    grid-columns: 1
+    grid-gap: 80
+
+    db: Postgres {
+      class: card
+      icon: https://cdn.simpleicons.org/postgresql
+    }
   }
-  orchestrator: FastAPI Backend {
-    class: card
-    icon: https://cdn.simpleicons.org/fastapi
+
+  app_zone: "App" {
+    grid-columns: 2
+    grid-gap: 80
+
+    ui: Next.js Frontend {
+      class: card
+      icon: https://cdn.simpleicons.org/nextdotjs
+    }
+    orchestrator: FastAPI Backend {
+      class: card
+      icon: https://cdn.simpleicons.org/fastapi
+    }
+  }
+
+  integrations_zone: "3rd Party Integrations" {
+    grid-columns: 3
+    grid-gap: 80
+
+    claude: Claude API {
+      class: card
+      icon: https://cdn.simpleicons.org/anthropic
+    }
+    hubspot: HubSpot {
+      class: card
+      icon: https://cdn.simpleicons.org/hubspot
+    }
+    salesforce: Salesforce {
+      class: card
+      icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/cloud.svg
+    }
   }
 }
 
-agent_zone: "Agent Runtime" {
+processing_zone: "Agent Runtime" {
   grid-columns: 1
   grid-gap: 80
 
@@ -97,44 +103,14 @@ agent_zone: "Agent Runtime" {
   }
 }
 
-spacer_bl: "" { class: spacer }
-
-integrations_zone: "3rd Party Integrations" {
-  grid-columns: 3
-  grid-gap: 80
-
-  claude: Claude API {
-    class: card
-    icon: https://cdn.simpleicons.org/anthropic
-  }
-  hubspot: HubSpot {
-    class: card
-    icon: https://cdn.simpleicons.org/hubspot
-  }
-  salesforce: Salesforce {
-    class: card
-    icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/cloud.svg
-  }
-}
-
-spacer_br: "" { class: spacer }
-
-user_slot.user -> app_zone.ui: "1. Message"
-app_zone.ui -> app_zone.orchestrator: "2. Request"
-app_zone.orchestrator -> data_zone.db: "3. Load session"
-app_zone.orchestrator -> agent_zone.memory: "4. Build context"
-app_zone.orchestrator -> agent_zone.reads: "5. Fetch"
-app_zone.orchestrator -> agent_zone.writes: "6. Mutate"
-agent_zone.reads -> integrations_zone.hubspot: "7a. Read"
-agent_zone.reads -> integrations_zone.salesforce: "7b. Read"
-agent_zone.writes -> integrations_zone.hubspot: "8a. Commit" {
+# Zone-to-zone arrows only. Max 6. Linear flow.
+entry_slot.user -> core.app_zone: "1. Message"
+core.app_zone -> core.data_zone: "2. Load session"
+core.app_zone -> processing_zone: "3. Tool calls"
+processing_zone -> core.integrations_zone: "4. Read/Write CRM" {
   style.stroke: "#059669"
   style.bold: true
 }
-agent_zone.writes -> integrations_zone.salesforce: "8b. Commit" {
-  style.stroke: "#059669"
-  style.bold: true
-}
-app_zone.orchestrator -> integrations_zone.claude: "LLM call" {
+core.app_zone -> core.integrations_zone.claude: "LLM call" {
   style.stroke-dash: 3
 }
