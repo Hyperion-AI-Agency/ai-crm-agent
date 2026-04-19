@@ -1,5 +1,5 @@
 # AI CRM Agent - Architecture
-# Render: d2 --theme 0 --sketch --pad 120 --scale 1.5 --layout elk docs/architecture.d2 docs/architecture.svg
+# Render: d2 --theme 0 --sketch --pad 80 --scale 1.0 --layout elk docs/architecture.d2 docs/architecture.svg
 
 vars: {
   d2-config: {
@@ -8,6 +8,8 @@ vars: {
 }
 
 direction: right
+grid-columns: 3
+grid-gap: 60
 
 classes: {
   card: {
@@ -40,7 +42,8 @@ client_zone: "Client" {
 }
 
 agent_zone: "Agent Runtime" {
-  direction: down
+  grid-columns: 2
+  grid-gap: 40
 
   orchestrator: Claude Orchestrator {
     class: card
@@ -74,7 +77,6 @@ external_zone: "CRM" {
   }
 }
 
-# Confirmation loop: writes drafts before commit, user confirms via ui.
 user -> client_zone.ui: "1. Message"
 client_zone.ui -> agent_zone.orchestrator: "2. Request"
 agent_zone.orchestrator -> agent_zone.memory: "3. Load context"
