@@ -29,9 +29,11 @@ classes: {
 }
 
 # app_zone at position [0,1] = top-center.
-user: Internal User {
-  class: card
-  icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/user-round.svg
+user_zone: "User" {
+  user: Internal User {
+    class: card
+    icon: https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/user-round.svg
+  }
 }
 
 app_zone: "App" {
@@ -88,7 +90,7 @@ integrations_zone: "3rd Party Integrations" {
 }
 
 # L-to-R flow: user -> app -> agent -> data/integrations
-user -> app_zone.ui: "1. Message"
+user_zone.user -> app_zone.ui: "1. Message"
 app_zone.ui -> app_zone.orchestrator: "2. Request"
 app_zone.orchestrator -> agent_zone: "3. Load + tool calls"
 agent_zone.memory -> data_zone.db: "4. Session state"
