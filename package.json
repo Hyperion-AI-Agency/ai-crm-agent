@@ -42,7 +42,7 @@
     "@turbo/gen": "^2.6.1",
     "@types/node": "^20.0.0",
     "@commitlint/cli": "^19.8.1",
-    "@commitlint/config-conventional": "^19.8.1",
+    "@commitlint/config-conventional": "^20.5.0",
     "husky": "^9.1.7",
     "prettier": "^3.6.2",
     "semantic-release": "^25.0.2",
